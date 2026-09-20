@@ -5,6 +5,10 @@ saves a PNG snapshot locally and returns the image as a base64 string in the JSO
 
 ## Run
 ```
+git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
+cd YOUR-REPO
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 python time_complexity_visualizer.py
 ```
@@ -12,6 +16,8 @@ python time_complexity_visualizer.py
 ## Endpoint
 ```
 GET http://localhost:8000/analyze?algo=linear_search&step=10&n_max=10,000
+
+The URL only works while the server is running on your own computer. Start it with the Run commands above first.
 ```
 | Parameter | Meaning |
 |-----------|---------|
