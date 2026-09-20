@@ -14,10 +14,10 @@ python time_complexity_visualizer.py
 ```
 
 ## Endpoint
-```
-GET http://localhost:8000/analyze?algo=linear_search&step=10&n_max=10,000
 
 The URL only works while the server is running on your own computer. Start it with the Run commands above first.
+```
+GET http://localhost:8000/analyze?algo=linear_search&step=10&n_max=10,000
 ```
 | Parameter | Meaning |
 |-----------|---------|
