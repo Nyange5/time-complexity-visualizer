@@ -3,6 +3,8 @@ from heapq import merge
 from pathlib import Path
 from flask import Flask, jsonify, request
 from matplotlib.figure import Figure
+from stack import Stack
+from queue_ds import Queue, NaiveQueue
 
 app = Flask(__name__)
 
@@ -46,8 +48,24 @@ def quick_sort(a):
     p, rest = a[0], a[1:]
     return quick_sort([x for x in rest if x < p]) + [p] + quick_sort([x for x in rest if x >= p])
 
+def stack_push_pop(a):
+    s = Stack()
+    for x in a: s.push(x)
+    while not s.is_empty(): s.pop()
+
+def queue_enqueue_dequeue(a):
+    q = Queue()
+    for x in a: q.enqueue(x)
+    while not q.is_empty(): q.dequeue()
+
+def queue_naive_dequeue(a):
+    q = NaiveQueue()
+    for x in a: q.enqueue(x)
+    while not q.is_empty(): q.dequeue()
+
 ALGOS = {f.__name__: f for f in [linear_search, binary_search, bubble_sort, nested_loops,
-                                 selection_sort, merge_sort, quick_sort]}
+                                 selection_sort, merge_sort, quick_sort,
+                                 stack_push_pop, queue_enqueue_dequeue, queue_naive_dequeue]}
 
 def time_complexity_visualizer(algorithm, n_min, n_max, n_step):
     sizes, times = list(range(n_min, n_max + 1, n_step)), []
