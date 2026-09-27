@@ -60,3 +60,31 @@ them all, and both come out O(n). `queue_naive_dequeue` does the same with
 ## Response (JSON)
 `algo`, `n_max`, `step` (step actually used), `sizes`, `times` (seconds),
 `image_path` (saved in `snapshots/`) and `image_base64` (PNG encoded as base64).
+
+## Saving an analysis (database)
+`models.py` defines an `AnalysisRecord` table with Flask-SQLAlchemy, backed
+by SQLite (a single file, `instance/analysis.db`, created automatically the
+first time the server runs). No raw SQL is written anywhere; SQLAlchemy's
+ORM builds the queries. Flask-SQLAlchemy always puts a relative SQLite path
+inside an `instance/` folder next to the code, which is why the file isn't
+directly in the project root.
+
+To point this at a real MySQL server instead, install `pymysql` and change
+one line in `time_complexity_visualizer.py`:
+```python
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://USER:PASSWORD@localhost:3306/DBNAME"
+```
+
+```
+POST /save_analysis    body: {"algo": "...", "step": 10, "n_max": 10000}
+GET  /analyses          list saved rows (id, algorithm_name, input_size, step_size,
+                         started_at, finished_at, duration_seconds, big_o, plot_path)
+GET  /analyses/<id>     one saved row
+```
+
+Example:
+```
+curl -X POST "http://localhost:8000/save_analysis" -H "Content-Type: application/json" -d "{\"algo\":\"linear_search\",\"step\":10,\"n_max\":10000}"
+curl "http://localhost:8000/analyses"
+curl "http://localhost:8000/analyses/1"
+```
