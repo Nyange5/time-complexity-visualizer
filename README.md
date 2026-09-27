@@ -62,7 +62,7 @@ them all, and both come out O(n). `queue_naive_dequeue` does the same with
 `image_path` (saved in `snapshots/`) and `image_base64` (PNG encoded as base64).
 
 ## Saving an analysis (database)
-`models.py` defines an `AnalysisRecord` table with Flask-SQLAlchemy, backed
+`database.py` defines an `AnalysisRecord` table with Flask-SQLAlchemy, backed
 by SQLite (a single file, `instance/analysis.db`, created automatically the
 first time the server runs). No raw SQL is written anywhere; SQLAlchemy's
 ORM builds the queries. Flask-SQLAlchemy always puts a relative SQLite path
