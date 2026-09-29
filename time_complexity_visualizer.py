@@ -1,4 +1,7 @@
-import base64, random, time
+import base64, os, random, time
+import jwt
+from datetime import datetime, timedelta, timezone
+from functools import wraps
 from heapq import merge
 from pathlib import Path
 from flask import Flask, jsonify, request
@@ -10,6 +13,8 @@ from database import db, AnalysisRecord, COMPLEXITY_LABELS
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///analysis.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+USERS = {os.environ.get("API_USER", "student"): os.environ.get("API_PASSWORD", "password123")}
 db.init_app(app)
 with app.app_context():
     db.create_all()
@@ -123,7 +128,42 @@ def parse_body():
         return None, (jsonify(error=f"invalid input; algo must be one of {list(ALGOS)}"), 400)
     return (name, step, n_max), None
 
+def unauthorized(message):
+    return jsonify(error=message), 401, {"WWW-Authenticate": "Bearer"}
+
+def read_token():
+    scheme, _, value = request.headers.get("Authorization", "").partition(" ")
+    if scheme.lower() == "bearer" and value.strip():
+        return value.strip()
+    return None
+
+def token_required(view):
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        token = read_token()
+        if not token:
+            return unauthorized("I don't know you. Bye.")
+        try:
+            jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return unauthorized("token expired")
+        except jwt.InvalidTokenError:
+            return unauthorized("invalid token")
+        return view(*args, **kwargs)
+    return wrapper
+
+@app.post("/token")
+def get_token():
+    data = request.get_json(silent=True) or {}
+    username, password = data.get("username"), data.get("password")
+    if username not in USERS or USERS[username] != password:
+        return unauthorized("wrong username or password")
+    expires = datetime.now(timezone.utc) + timedelta(hours=1)
+    token = jwt.encode({"sub": username, "exp": expires}, app.config["SECRET_KEY"], algorithm="HS256")
+    return jsonify(token=token, expires_in_seconds=3600)
+
 @app.post("/save_analysis")
+@token_required
 def save_analysis():
     parsed, err = parse_body()
     if err: return err
